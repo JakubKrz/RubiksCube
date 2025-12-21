@@ -136,14 +136,22 @@
     <ClInclude Include="GL\glcorearb.h" />
     <ClInclude Include="GL\glext.h" />
     <ClInclude Include="GL\wglext.h" />
+    <ClInclude Include="headers\GLFunctionsList.h" />
+    <ClInclude Include="headers\GLLoader.h" />
     <ClInclude Include="headers\OpenGLContext.h" />
+    <ClInclude Include="headers\Shader.h" />
     <ClInclude Include="headers\Window.h" />
     <ClInclude Include="KHR\khrplatform.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\OpenGLContext.cpp" />
     <ClCompile Include="src\RubiksCube.cpp" />
+    <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\Window.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\FragmentShader.frag" />
+    <None Include="shaders\VertexShader.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

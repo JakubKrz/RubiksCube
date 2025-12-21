@@ -16,6 +16,12 @@
     <Filter Include="Header Files\GL">
       <UniqueIdentifier>{a5464a8d-3dfa-4d24-b5d9-50ade3cd19e4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\GLLoaders">
+      <UniqueIdentifier>{3a6c20e1-f5eb-49fe-93aa-80183f0542ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{01a3220f-0b30-4420-90c9-efbd510233b6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="headers\Window.h">
@@ -27,14 +33,23 @@
     <ClInclude Include="GL\glext.h">
       <Filter>Header Files\GL</Filter>
     </ClInclude>
-    <ClInclude Include="headers\OpenGLContext.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="GL\glcorearb.h">
       <Filter>Header Files\GL</Filter>
     </ClInclude>
     <ClInclude Include="KHR\khrplatform.h">
       <Filter>Header Files\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="headers\Shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="headers\GLFunctionsList.h">
+      <Filter>Header Files\GLLoaders</Filter>
+    </ClInclude>
+    <ClInclude Include="headers\GLLoader.h">
+      <Filter>Header Files\GLLoaders</Filter>
+    </ClInclude>
+    <ClInclude Include="headers\OpenGLContext.h">
+      <Filter>Header Files\GLLoaders</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -47,5 +62,16 @@
     <ClCompile Include="src\OpenGLContext.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\FragmentShader.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\VertexShader.vert">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

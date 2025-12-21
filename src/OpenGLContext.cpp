@@ -2,26 +2,10 @@
 #include "gl/GL.h"
 #include "GL/wglext.h"
 #include "GL/glcorearb.h"
-
-#define LOAD_PROC(type, name) name = (type)wglGetProcAddress(#name);
-
-PFNGLGENVERTEXARRAYSPROC    glGenVertexArrays = nullptr;
-PFNGLBINDVERTEXARRAYPROC    glBindVertexArray = nullptr;
-PFNGLGENBUFFERSPROC         glGenBuffers = nullptr;
-PFNGLBINDBUFFERPROC         glBindBuffer = nullptr;
-PFNGLBUFFERDATAPROC         glBufferData = nullptr;
-PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray = nullptr;
-PFNGLVERTEXATTRIBPOINTERPROC    glVertexAttribPointer = nullptr;
-
-PFNGLCREATESHADERPROC       glCreateShader = nullptr;
-PFNGLSHADERSOURCEPROC       glShaderSource = nullptr;
-PFNGLCOMPILESHADERPROC      glCompileShader = nullptr;
-PFNGLCREATEPROGRAMPROC      glCreateProgram = nullptr;
-PFNGLATTACHSHADERPROC       glAttachShader = nullptr;
-PFNGLLINKPROGRAMPROC        glLinkProgram = nullptr;
-PFNGLUSEPROGRAMPROC         glUseProgram = nullptr;
-PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation = nullptr;
-PFNGLUNIFORMMATRIX4FVPROC   glUniformMatrix4fv = nullptr;
+    
+#define X(type, name) type name = nullptr;
+#include "GLFunctionsList.h"
+#undef X
 
 bool OpenGLContext::Init(HDC hdc) {
     HGLRC tempContext = wglCreateContext(hdc);
@@ -43,23 +27,9 @@ bool OpenGLContext::Init(HDC hdc) {
         wglMakeCurrent(hdc, renderingContext);
     }
 
-    LOAD_PROC(PFNGLGENVERTEXARRAYSPROC, glGenVertexArrays);
-    LOAD_PROC(PFNGLBINDVERTEXARRAYPROC, glBindVertexArray);
-    LOAD_PROC(PFNGLGENBUFFERSPROC, glGenBuffers);
-    LOAD_PROC(PFNGLBINDBUFFERPROC, glBindBuffer);
-    LOAD_PROC(PFNGLBUFFERDATAPROC, glBufferData);
-    LOAD_PROC(PFNGLENABLEVERTEXATTRIBARRAYPROC, glEnableVertexAttribArray);
-    LOAD_PROC(PFNGLVERTEXATTRIBPOINTERPROC, glVertexAttribPointer);
-
-    LOAD_PROC(PFNGLCREATESHADERPROC, glCreateShader);
-    LOAD_PROC(PFNGLSHADERSOURCEPROC, glShaderSource);
-    LOAD_PROC(PFNGLCOMPILESHADERPROC, glCompileShader);
-    LOAD_PROC(PFNGLCREATEPROGRAMPROC, glCreateProgram);
-    LOAD_PROC(PFNGLATTACHSHADERPROC, glAttachShader);
-    LOAD_PROC(PFNGLLINKPROGRAMPROC, glLinkProgram);
-    LOAD_PROC(PFNGLUSEPROGRAMPROC, glUseProgram);
-    LOAD_PROC(PFNGLGETUNIFORMLOCATIONPROC, glGetUniformLocation);
-    LOAD_PROC(PFNGLUNIFORMMATRIX4FVPROC, glUniformMatrix4fv);
+    #define X(type, name) name = (type)wglGetProcAddress(#name);
+    #include "GLFunctionsList.h"
+    #undef X
 
     return renderingContext != nullptr;
 }
