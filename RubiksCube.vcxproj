@@ -125,11 +125,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)headers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>OpenGL32.lib;gdi32.lib;user32.lib</AdditionalDependencies>
+      <EntryPointSymbol>WinMainCRTStartup</EntryPointSymbol>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -138,13 +141,22 @@
     <ClInclude Include="GL\wglext.h" />
     <ClInclude Include="headers\GLFunctionsList.h" />
     <ClInclude Include="headers\GLLoader.h" />
+    <ClInclude Include="headers\Helpers.h" />
+    <ClInclude Include="headers\Loader.h" />
+    <ClInclude Include="headers\Math3D.h" />
+    <ClInclude Include="headers\Mesh.h" />
     <ClInclude Include="headers\OpenGLContext.h" />
+    <ClInclude Include="headers\RubiksCube.h" />
     <ClInclude Include="headers\Shader.h" />
+    <ClInclude Include="headers\stb_image.h" />
     <ClInclude Include="headers\Window.h" />
     <ClInclude Include="KHR\khrplatform.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Loader.cpp" />
+    <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\OpenGLContext.cpp" />
+    <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\RubiksCube.cpp" />
     <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\Window.cpp" />
@@ -152,6 +164,9 @@
   <ItemGroup>
     <None Include="shaders\FragmentShader.frag" />
     <None Include="shaders\VertexShader.vert" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resource\CubeTexture.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

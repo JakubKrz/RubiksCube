@@ -1,5 +1,6 @@
 #pragma once
 #include "GLLoader.h"
+#include "Math3D.h"
 #include <string>
 
 class Shader
@@ -23,5 +24,5 @@ public:
     void setFloat(const std::string& name, float value) const;
     void setVec3(const std::string& name, float x, float y, float z) const;
     //void setVec3(const std::string& name, const Vec3& value) const;
-    //void setMat4(const std::string& name, const Mat4& value) const;
+    void setMat4(const std::string& name, const Mat4& value) const;
 };

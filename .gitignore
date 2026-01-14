@@ -7,4 +7,5 @@ x64/
 x86/
 *.exe
 *.obj
+!Resource/*.obj
 *.pdb

@@ -1,56 +1,61 @@
-#include <windows.h>
-#include <GL/gl.h>
-#include "GL/wglext.h"
-#include "Window.h"
-#include "OpenGLContext.h"
-#include "Shader.h"
-#include "GLLoader.h"
-        
-int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow)
-{
-    Window win(800, 600, L"Rubic's Cube");
-    OpenGLContext gl;
-    
-    if (!gl.Init(win.GetHDC())) {
-        MessageBox(NULL, L"Failed to initialize OpenGL 4.6!", L"Error", MB_OK | MB_ICONERROR);
-        return -1;
+#include "RubiksCube.h"
+#include <iostream>
+#include <chrono>
+
+RubiksCube::RubiksCube() {
+    cubies.reserve(27);
+}
+RubiksCube::~RubiksCube() = default;
+
+void RubiksCube::Init(const char* texturePath, std::string modelPathPrefix) {
+    Texture tex;
+    tex.id = Loader::LoadTexture(texturePath);
+    tex.type = "diffuse";
+    tex.path = texturePath;
+    sharedTextures.push_back(tex);
+
+    float spacing = 0.3f;
+
+    auto globalStart = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < 27; i++) {
+        std::string fullPath = modelPathPrefix + "cube" + std::to_string(i) + ".obj";
+
+        std::vector<Vertex> vertices;
+
+        auto start = std::chrono::high_resolution_clock::now();
+
+        if (!Loader::LoadOBJ(fullPath.c_str(), vertices)) {
+            std::cout << "Blad wczytywania: " << fullPath << std::endl;
+            continue;
+        }
+        auto end = std::chrono::high_resolution_clock::now();
+
+        std::chrono::duration<double, std::milli> elapsed = end - start;
+        std::cout << "Cube_" << i << ": "
+            << elapsed.count() << " ms | "
+            << "Vertices: " << vertices.size() << std::endl;
+        Cubie c;
+        c.id = i;
+
+        std::vector<unsigned int> emptyIndices;
+        c.mesh = std::make_unique<Mesh>(vertices, emptyIndices, sharedTextures);
+
+        float x = static_cast<float>(i % 3) - 1.0f;
+        float y = static_cast<float>((i / 3) % 3) - 1.0f;
+        float z = 1.0f - static_cast<float>(i / 9);
+
+        c.gridPos = Vec3(x, y, z);
+        c.modelMatrix = Mat4::Translation(Vec3(x * spacing, y * spacing, z * spacing));
+
+        cubies.push_back(std::move(c));
     }
+}
 
-    Shader myShader("Shaders/VertexShader.vert", "Shaders/FragmentShader.frag");
+void RubiksCube::Draw(Shader& shader, const Mat4& globalModel) {
+    for (size_t i = 0; i < cubies.size(); i++) {
+        Mat4 finalMatrix = globalModel * cubies[i].modelMatrix;
 
-    float vertices[] = {
-        -0.5f, -0.5f, 0.0f,
-         0.5f, -0.5f, 0.0f,
-         0.0f,  0.5f, 0.0f
-    };
-
-    unsigned int VAO, VBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
-    while (win.IsOpen()) {
-        win.ProcessMessages();
-
-        glClearColor(0.1f, 0.15f, 0.2f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        myShader.use();
-        glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-
-        win.Swap();
+        shader.setMat4("model", finalMatrix);
+        cubies[i].mesh->Draw(shader);
     }
-
-    return 0;
 }

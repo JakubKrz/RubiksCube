@@ -48,7 +48,6 @@ LRESULT CALLBACK Window::StaticWindowProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM
     return DefWindowProc(hwnd, msg, wp, lp);
 }
 
-// Tutaj wpisujesz co ma siê staæ np. po klikniêciu klawisza
 LRESULT CALLBACK Window::WindowProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
     switch (msg) {
     case WM_SIZE:
