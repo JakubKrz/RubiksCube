@@ -1,6 +1,7 @@
 #include "RubiksCube.h"
 #include <iostream>
 #include <chrono>
+#include <future>
 
 RubiksCube::RubiksCube()
 {
@@ -13,31 +14,42 @@ void RubiksCube::Init(const char* texturePath, std::string modelPathPrefix) {
     tex.type = "diffuse";
     tex.path = texturePath;
     sharedTextures.push_back(tex);
-
     float spacing = 0.3f;
 
-    auto globalStart = std::chrono::high_resolution_clock::now();
-    for (int i = 0; i < cubies.size(); i++) {
-        std::string fullPath = modelPathPrefix + "cube" + std::to_string(i) + ".obj";
-        std::vector<Vertex> vertices;
+    const size_t numThreads = std::thread::hardware_concurrency();
+    std::vector<std::vector<Vertex>> loadedVertices(cubies.size());
+    std::atomic<size_t> nextIndex(0);
+    std::vector<std::thread> threads;
 
-        auto start = std::chrono::high_resolution_clock::now();
+    auto loadModels = [&]() {
+        while (true) {
+            size_t i = nextIndex.fetch_add(1);
+            if (i >= cubies.size()) break;
 
-        if (!Loader::LoadOBJ(fullPath.c_str(), vertices)) {
-            std::cout << "Blad wczytywania: " << fullPath << std::endl;
-            continue;
+            std::string fullPath = modelPathPrefix + "cube" + std::to_string(i) + ".obj";
+            Loader::LoadOBJ(fullPath.c_str(), loadedVertices[i]);
         }
-        auto end = std::chrono::high_resolution_clock::now();
+        };
 
-        std::chrono::duration<double, std::milli> elapsed = end - start;
-        std::cout << "Cube_" << i << ": "
-            << elapsed.count() << " ms | "
-            << "Vertices: " << vertices.size() << std::endl;
+    threads.reserve(numThreads);
+    for (size_t t = 0; t < numThreads; ++t) {
+        threads.emplace_back(loadModels);
+    }
+
+    for (auto& thread : threads) {
+        thread.join();
+    }
+
+    std::vector<unsigned int> emptyIndices;
+    for (int i = 0; i < cubies.size(); i++) {
+        if (loadedVertices[i].empty()) continue;
 
         cubies[i].id = i;
-
-        std::vector<unsigned int> emptyIndices;
-        cubies[i].mesh = std::make_unique<Mesh>(vertices, emptyIndices, sharedTextures);
+        cubies[i].mesh = std::make_unique<Mesh>(
+            std::move(loadedVertices[i]),
+            emptyIndices,
+            sharedTextures
+        );
 
         int gx = (i % 3) - 1;
         int gy = ((i / 3) % 3) - 1;
