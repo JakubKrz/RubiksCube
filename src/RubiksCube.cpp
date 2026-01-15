@@ -14,7 +14,7 @@ void RubiksCube::Init(const char* texturePath, std::string modelPathPrefix) {
     tex.type = "diffuse";
     tex.path = texturePath;
     sharedTextures.push_back(tex);
-    float spacing = 0.3f;
+    float spacing = 0.03f;
 
     const size_t numThreads = std::thread::hardware_concurrency();
     std::vector<std::vector<Vertex>> loadedVertices(cubies.size());

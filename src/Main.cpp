@@ -16,14 +16,14 @@
 
 std::map<int, bool> keyPreviousState;
 
-bool IsKeyPressedOnce(int vKey) {
+static bool IsKeyPressedOnce(int vKey) {
     bool isPressedNow = (GetAsyncKeyState(vKey) & 0x8000) != 0;
 
     bool wasPressedLast = keyPreviousState[vKey];
     keyPreviousState[vKey] = isPressedNow;
     return isPressedNow && !wasPressedLast;
 }
-void ProcessInput(RubiksCube& cube) {
+static void ProcessInput(RubiksCube& cube, Shader& shader) {
     bool isShiftHeld = (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0;
     bool clockwise = !isShiftHeld;
 
@@ -53,8 +53,12 @@ void ProcessInput(RubiksCube& cube) {
     if (IsKeyPressedOnce('B')) {
         cube.StartRotation(Axis::Z, Layer::Negative, clockwise);
     }
+
+    if (IsKeyPressedOnce('S')) {
+        shader.reload();
+    }
 }
-//TODOJK usunac mnozenie z vertexshadera i przeskalowac przez model
+
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
@@ -81,7 +85,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
     //TODOJK - inputy(moga byc same klawisze)  - klasa kamera  - kostak rubika rendering  - jaka architektura jak usturktyryzwoac
     //TODO remove unused includes
-    
+    Mat4 scaleMatrix = Mat4::Scale(10.0f);
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //Wireframe
     while (win.IsOpen()) {
         float currentFrame = static_cast<float>(GetTime());
@@ -96,7 +100,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
         Quat rot = Quat::FromAxisAngle(Vec3(1, 1, 0).Normalized(), currentFrame * 30.0f);
         Vec3 pos(sinf(currentFrame) * 0.0f, sinf(currentFrame)*0.0f, 0.0f);
         DualQuat dq = DualQuat::FromRotationTranslation(rot, pos);
-        Mat4 model = dq.ToMat4();
+        Mat4 modelFromDQ = dq.ToMat4();
+        Mat4 model = modelFromDQ * scaleMatrix;
+
 
         myShader.use();
         myShader.setMat4("projection", projection);
@@ -104,7 +110,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
         //myShader.setMat4("model", model);
         
         win.ProcessMessages();
-        ProcessInput(myCube1);
+        ProcessInput(myCube1, myShader);
         myCube1.Update(deltaTime);
         myCube1.Draw(myShader, model);
 

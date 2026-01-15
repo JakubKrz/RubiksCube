@@ -88,6 +88,21 @@ struct Mat4 {
 		res.m[14] = -(2.0f * zFar * zNear) / (zFar - zNear);
 		return res;
 	}
+
+	static Mat4 Scale(float scale)
+	{
+		return Scale(Vec3(scale, scale, scale));
+	}
+
+	static Mat4 Scale(const Vec3& s) {
+		Mat4 mat;
+		mat.m[0] = s.x;
+		mat.m[5] = s.y;
+		mat.m[10] = s.z;
+		mat.m[15] = 1.0f;
+
+		return mat;
+	}
 };
 
 struct Quat {

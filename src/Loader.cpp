@@ -95,7 +95,7 @@ unsigned int Loader::LoadTexture(const char* path) {
 
     unsigned char* data = stbi_load(path, &width, &height, &nrComponents, 0);
     if (data) {
-        GLenum format;
+        GLenum format = GL_RGBA;
         if (nrComponents == 1) format = GL_RED;
         else if (nrComponents == 3) format = GL_RGB;
         else if (nrComponents == 4) format = GL_RGBA;
