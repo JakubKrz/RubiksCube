@@ -39,9 +39,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 
     //TODOJK - inputy(moga byc same klawisze)  - klasa kamera  - kostak rubika rendering  - jaka architektura jak usturktyryzwoac
+    //TODO remove unused includes
     
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //Wireframe
-
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //Wireframe
     while (win.IsOpen()) {
         float currentFrame = static_cast<float>(GetTime());
         deltaTime = currentFrame - lastFrame;
@@ -61,6 +61,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
         myShader.setMat4("projection", projection);
         myShader.setMat4("view", view);
         //myShader.setMat4("model", model);
+        
+        myCube1.Update(deltaTime);
         myCube1.Draw(myShader, model);
 
         win.Swap();

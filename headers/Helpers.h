@@ -4,7 +4,7 @@
 #include "stb_image.h"
 #include <iostream>
 
-//TODOJK przenieœæ do soobnych klas
+//TODOJK przenieœæ do soobnych klas?
 struct Vertex {
     Vec3 Position;
     Vec3 Normal;
@@ -12,7 +12,7 @@ struct Vertex {
 };
 
 struct Texture {
-    unsigned int id;
+    unsigned int id = 0;
     std::string type;
     std::string path;
 };
@@ -32,4 +32,20 @@ inline double GetTime() {
     QueryPerformanceCounter(&currentCounter);
 
     return static_cast<double>(currentCounter.QuadPart - startCounter.QuadPart) / frequency.QuadPart;
-} 
+}
+
+enum class Axis { X, Y, Z };
+
+enum class Layer {
+    Negative = -1,
+    Middle = 0,
+    Positive = 1
+};
+
+inline Layer operator-(Layer l) {
+    return static_cast<Layer>(-static_cast<int>(l));
+}
+
+inline bool operator==(Layer l, int val) {
+    return static_cast<int>(l) == val;
+}

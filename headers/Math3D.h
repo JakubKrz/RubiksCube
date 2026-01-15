@@ -28,6 +28,10 @@ struct Vec3 {
 		}
 		return Vec3(0.0f, 0.0f, 0.0f);
 	}
+	Vec3 operator*(const float& other)
+	{
+		return Vec3(x * other, y * other, z * other);
+	}
 };
 
 struct Mat4 {
@@ -57,6 +61,7 @@ struct Mat4 {
 		}
 		return res;
 	}
+
 
 	static Mat4 Translation(const Vec3& v) {
 		Mat4 res = Identity();
