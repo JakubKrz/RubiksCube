@@ -53,10 +53,11 @@ void RubiksCube::Init(const char* texturePath, std::string modelPathPrefix) {
 
         int gx = (i % 3) - 1;
         int gy = ((i / 3) % 3) - 1;
-        int gz = 1 - (i / 9);
+        int gz = (i / 9) - 1;
         cubies[i].setGridPosition(gx, gy, gz);
 
         Vec3 startPos = cubies[i].getGridPosition() * spacing;
+        startPos.z *= -1;
         Quat startRot = Quat::Identity();
         cubies[i].transform = DualQuat::FromRotationTranslation(startRot, startPos);
     }
@@ -168,12 +169,12 @@ void RubiksCube::UpdateLogicalGrid(Axis axis, Layer layer, bool clockwise) {
 
         case Axis::Z:
             if (clockwise) {
-                c.gx = -oldY;
-                c.gy = oldX;
-            }
-            else {
                 c.gx = oldY;
                 c.gy = -oldX;
+            }
+            else {
+                c.gx = -oldY;
+                c.gy = oldX;
             }
             break;
         }

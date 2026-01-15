@@ -12,7 +12,48 @@
 #include "Mesh.h"
 #include "Loader.h"
 #include "RubiksCube.h"
+#include <map>
 
+std::map<int, bool> keyPreviousState;
+
+bool IsKeyPressedOnce(int vKey) {
+    bool isPressedNow = (GetAsyncKeyState(vKey) & 0x8000) != 0;
+
+    bool wasPressedLast = keyPreviousState[vKey];
+    keyPreviousState[vKey] = isPressedNow;
+    return isPressedNow && !wasPressedLast;
+}
+void ProcessInput(RubiksCube& cube) {
+    bool isShiftHeld = (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0;
+    bool clockwise = !isShiftHeld;
+
+    // R - Right (Prawa œcianka)
+    if (IsKeyPressedOnce('R')) {
+        cube.StartRotation(Axis::X, Layer::Positive, clockwise);
+    }
+    // L - Left (Lewa œcianka)
+    if (IsKeyPressedOnce('L')) {
+        cube.StartRotation(Axis::X, Layer::Negative, clockwise);
+    }
+
+    // U - Up (Górna œcianka)
+    if (IsKeyPressedOnce('U')) {
+        cube.StartRotation(Axis::Y, Layer::Positive, clockwise);
+    }
+    // D - Down (Dolna œcianka)
+    if (IsKeyPressedOnce('D')) {
+        cube.StartRotation(Axis::Y, Layer::Negative, clockwise);
+    }
+
+    // F - Front (Przednia œcianka)
+    if (IsKeyPressedOnce('F')) {
+        cube.StartRotation(Axis::Z, Layer::Positive, clockwise);
+    }
+    // B - Back (Tylna œcianka)
+    if (IsKeyPressedOnce('B')) {
+        cube.StartRotation(Axis::Z, Layer::Negative, clockwise);
+    }
+}
 //TODOJK usunac mnozenie z vertexshadera i przeskalowac przez model
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
@@ -62,6 +103,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
         myShader.setMat4("view", view);
         //myShader.setMat4("model", model);
         
+        win.ProcessMessages();
+        ProcessInput(myCube1);
         myCube1.Update(deltaTime);
         myCube1.Draw(myShader, model);
 
