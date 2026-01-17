@@ -57,6 +57,10 @@ static void ProcessInput(RubiksCube& cube, Shader& shader) {
     if (IsKeyPressedOnce('S')) {
         shader.reload();
     }
+
+    if (IsKeyPressedOnce('Q')) {
+        cube.Scramble(20);
+    }
 }
 
 float deltaTime = 0.0f;

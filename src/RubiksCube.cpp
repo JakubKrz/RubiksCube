@@ -80,6 +80,11 @@ void RubiksCube::QueueRotation(Axis axis, Layer layer, bool clockwise) {
 }
 
 void RubiksCube::Update(float deltaTime) {
+    if (isScrambling && moveQueue.empty() && !isAnimating) {
+        rotationSpeed = defaultSpeed;
+        isScrambling = false;
+    }
+
     if (!isAnimating) {
         ProcessNextMove();
         return;
@@ -105,6 +110,25 @@ void RubiksCube::Update(float deltaTime) {
         currentAngle += step;
     }
 }
+
+void RubiksCube::Scramble(int movesCount)
+{
+    rotationSpeed = scrambleRotationSpeed;
+    isScrambling = true;
+
+    for (int i = 0; i < movesCount; i++) {
+        int axisIdx = std::rand() % 3;
+        Axis axis = (axisIdx == 0) ? Axis::X : ((axisIdx == 1) ? Axis::Y : Axis::Z);
+
+        int layerIdx = std::rand() % 2;
+        Layer layer = (layerIdx == 0) ? Layer::Negative : Layer::Positive;
+
+        bool cw = (std::rand() % 2) == 0;
+
+        QueueRotation(axis, layer, cw);
+    }
+}
+
 
 void RubiksCube::ApplyVisualRotation(Axis axis, Layer layer, float angleDelta) {
     Vec3 rotAxis;

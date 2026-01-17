@@ -9,6 +9,7 @@
 #include <memory>
 #include <array>
 #include <deque>
+#include <cstdlib>
 
 class RubiksCube {
 private:
@@ -51,7 +52,7 @@ public:
     void Draw(Shader& shader, const Mat4& globalModel);
     void QueueRotation(Axis axis, Layer layer, bool clockwise);
     void Update(float deltaTime);
-
+    void Scramble(int movesCount);
 
 private:
     void ApplyVisualRotation(Axis axis, Layer layer, float angleDelta);
@@ -61,7 +62,11 @@ private:
     bool isAnimating = false;
     float currentAngle = 0.0f;
     float targetAngle = 90.0f;
+    float defaultSpeed = 270.0f;
     float rotationSpeed = 270.0f; // angle/sec
+    
+    float scrambleRotationSpeed = 1000.0f;
+    bool isScrambling = false;
 
     Axis currentAxis = Axis::X;
     Layer currentLayer = Layer::Middle;
