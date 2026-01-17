@@ -86,11 +86,13 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     Mat4 projection = Mat4::Perspective(45.0f, 800.0f / 600.0f, 0.1f, 100.0f);
     Mat4 view = Mat4::Translation(Vec3(0.0f, 0.0f, -3.0f));
 
+    //TODO yellow faces have inverted normals!!!!!
 
-    //TODOJK - inputy(moga byc same klawisze)  - klasa kamera  - kostak rubika rendering  - jaka architektura jak usturktyryzwoac
     //TODO remove unused includes
     Mat4 scaleMatrix = Mat4::Scale(10.0f);
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //Wireframe
+    //glEnable(GL_CULL_FACE);
+    //glCullFace(GL_BACK);
     while (win.IsOpen()) {
         float currentFrame = static_cast<float>(GetTime());
         deltaTime = currentFrame - lastFrame;
@@ -101,7 +103,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
         glClearColor(0.1f, 0.15f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        Quat rot = Quat::FromAxisAngle(Vec3(1, 1, 0).Normalized(), currentFrame * 30.0f);
+        Quat rot = Quat::FromAxisAngle(Vec3(1, 0, 0).Normalized(), currentFrame * -30.0f);
         Vec3 pos(sinf(currentFrame) * 0.0f, sinf(currentFrame)*0.0f, 0.0f);
         DualQuat dq = DualQuat::FromRotationTranslation(rot, pos);
         Mat4 modelFromDQ = dq.ToMat4();
@@ -112,6 +114,12 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
         myShader.setMat4("projection", projection);
         myShader.setMat4("view", view);
         //myShader.setMat4("model", model);
+
+        //TODO cleanup
+        myShader.setVec3("lightPos", Vec3(0.0f, 3.0f, 0.0f));
+        myShader.setVec3("viewPos", Vec3(0.0f, 0.0f, -3.0f));
+        myShader.setVec3("lightColor", Vec3(1.0f, 1.0f, 1.0f));
+        myShader.setFloat("material.shininess", 64.0f);
         
         win.ProcessMessages();
         ProcessInput(myCube1, myShader);

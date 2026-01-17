@@ -44,6 +44,12 @@ void RubiksCube::Init(const char* texturePath, std::string modelPathPrefix) {
     for (int i = 0; i < cubies.size(); i++) {
         if (loadedVertices[i].empty()) continue;
 
+
+        int gx = (i % 3) - 1;
+        int gy = ((i / 3) % 3) - 1;
+        int gz = (i / 9) - 1;
+        cubies[i].setGridPosition(gx, gy, gz);
+
         cubies[i].id = i;
         cubies[i].mesh = std::make_unique<Mesh>(
             std::move(loadedVertices[i]),
@@ -51,10 +57,7 @@ void RubiksCube::Init(const char* texturePath, std::string modelPathPrefix) {
             sharedTextures
         );
 
-        int gx = (i % 3) - 1;
-        int gy = ((i / 3) % 3) - 1;
-        int gz = (i / 9) - 1;
-        cubies[i].setGridPosition(gx, gy, gz);
+
 
         Vec3 startPos = cubies[i].getGridPosition() * spacing;
         startPos.z *= -1;
