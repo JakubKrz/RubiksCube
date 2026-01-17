@@ -29,29 +29,29 @@ static void ProcessInput(RubiksCube& cube, Shader& shader) {
 
     // R - Right (Prawa œcianka)
     if (IsKeyPressedOnce('R')) {
-        cube.StartRotation(Axis::X, Layer::Positive, clockwise);
+        cube.QueueRotation(Axis::X, Layer::Positive, clockwise);
     }
     // L - Left (Lewa œcianka)
     if (IsKeyPressedOnce('L')) {
-        cube.StartRotation(Axis::X, Layer::Negative, clockwise);
+        cube.QueueRotation(Axis::X, Layer::Negative, clockwise);
     }
 
     // U - Up (Górna œcianka)
     if (IsKeyPressedOnce('U')) {
-        cube.StartRotation(Axis::Y, Layer::Positive, clockwise);
+        cube.QueueRotation(Axis::Y, Layer::Positive, clockwise);
     }
     // D - Down (Dolna œcianka)
     if (IsKeyPressedOnce('D')) {
-        cube.StartRotation(Axis::Y, Layer::Negative, clockwise);
+        cube.QueueRotation(Axis::Y, Layer::Negative, clockwise);
     }
 
     // F - Front (Przednia œcianka)
     if (IsKeyPressedOnce('F')) {
-        cube.StartRotation(Axis::Z, Layer::Positive, clockwise);
+        cube.QueueRotation(Axis::Z, Layer::Positive, clockwise);
     }
     // B - Back (Tylna œcianka)
     if (IsKeyPressedOnce('B')) {
-        cube.StartRotation(Axis::Z, Layer::Negative, clockwise);
+        cube.QueueRotation(Axis::Z, Layer::Negative, clockwise);
     }
 
     if (IsKeyPressedOnce('S')) {

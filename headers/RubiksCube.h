@@ -8,6 +8,7 @@
 #include "Helpers.h"
 #include <memory>
 #include <array>
+#include <deque>
 
 class RubiksCube {
 private:
@@ -32,8 +33,15 @@ private:
         }
     };
 
+    struct MoveRequest {
+        Axis axis;
+        Layer layer;
+        bool clockwise;
+    };
+
     std::array<Cubie, 27> cubies;
     std::vector<Texture> sharedTextures;
+    std::deque<MoveRequest> moveQueue;
 
 public:
     RubiksCube();
@@ -41,17 +49,19 @@ public:
 
     void Init(const char* texturePath, std::string modelPathPrefix);
     void Draw(Shader& shader, const Mat4& globalModel);
-    void StartRotation(Axis axis, Layer layer, bool clockwise);
+    void QueueRotation(Axis axis, Layer layer, bool clockwise);
     void Update(float deltaTime);
+
 
 private:
     void ApplyVisualRotation(Axis axis, Layer layer, float angleDelta);
     void UpdateLogicalGrid(Axis axis, Layer layer, bool clockwise);
+    void ProcessNextMove();
 
     bool isAnimating = false;
     float currentAngle = 0.0f;
     float targetAngle = 90.0f;
-    float rotationSpeed = 180.0f; // angle/sec
+    float rotationSpeed = 270.0f; // angle/sec
 
     Axis currentAxis = Axis::X;
     Layer currentLayer = Layer::Middle;

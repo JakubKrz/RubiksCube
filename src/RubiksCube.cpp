@@ -72,18 +72,18 @@ void RubiksCube::Draw(Shader& shader, const Mat4& globalModel) {
     }
 }
 
-void RubiksCube::StartRotation(Axis axis, Layer layer, bool clockwise) {
-    if (isAnimating) return;
-
-    isAnimating = true;
-    currentAngle = 0.0f;
-    currentAxis = axis;
-    currentLayer = layer;
-    currentClockwise = clockwise;
+void RubiksCube::QueueRotation(Axis axis, Layer layer, bool clockwise) {
+    moveQueue.push_back({ axis, layer, clockwise });
+    if (!isAnimating) {
+        ProcessNextMove();
+    }
 }
 
 void RubiksCube::Update(float deltaTime) {
-    if (!isAnimating) return;
+    if (!isAnimating) {
+        ProcessNextMove();
+        return;
+    }
 
     float step = rotationSpeed * deltaTime;
 
@@ -96,6 +96,8 @@ void RubiksCube::Update(float deltaTime) {
 
         isAnimating = false;
         currentAngle = 0.0f;
+
+        ProcessNextMove();
     }
     else {
         float direction = currentClockwise ? -1.0f : 1.0f;
@@ -179,4 +181,17 @@ void RubiksCube::UpdateLogicalGrid(Axis axis, Layer layer, bool clockwise) {
             break;
         }
     }
+}
+
+void RubiksCube::ProcessNextMove() {
+    if (moveQueue.empty()) return;
+
+    MoveRequest move = moveQueue.front();
+    moveQueue.pop_front();
+
+    isAnimating = true;
+    currentAngle = 0.0f;
+    currentAxis = move.axis;
+    currentLayer = move.layer;
+    currentClockwise = move.clockwise;
 }
