@@ -12,6 +12,7 @@
 #include "Mesh.h"
 #include "Loader.h"
 #include "RubiksCube.h"
+#include "Camera.h"
 #include <map>
 
 std::map<int, bool> keyPreviousState;
@@ -61,6 +62,11 @@ static void ProcessInput(RubiksCube& cube, Shader& shader) {
     if (IsKeyPressedOnce('Q')) {
         cube.Scramble(20);
     }
+
+    if (IsKeyPressedOnce('W'))
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //Wireframe
+    }
 }
 
 float deltaTime = 0.0f;
@@ -80,31 +86,47 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     Shader myShader("Shaders/VertexShader.vert", "Shaders/FragmentShader.frag");
     myShader.use();
 
-    RubiksCube myCube1;
-    myCube1.Init("Resource/CubeTexture.png", "Resource/Cubes/");
+    RubiksCube Cube;
+    Cube.Init("Resource/CubeTexture.png", "Resource/Cubes/");
+
+    Camera camera(8.0f);
+
+    bool isDragging = false;
+    int lastMouseX = 0;
+    int lastMouseY = 0;
 
     Mat4 projection = Mat4::Perspective(45.0f, 800.0f / 600.0f, 0.1f, 100.0f);
-    Mat4 view = Mat4::Translation(Vec3(0.0f, 0.0f, -3.0f));
-
+    //Mat4 view = Mat4::Translation(Vec3(0.0f, 0.0f, -3.0f));
+    
     //TODO yellow faces have inverted normals!!!!!
 
     //TODO remove unused includes
     Mat4 scaleMatrix = Mat4::Scale(10.0f);
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //Wireframe
-    //glEnable(GL_CULL_FACE);
-    //glCullFace(GL_BACK);
+
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
     while (win.IsOpen()) {
         float currentFrame = static_cast<float>(GetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
         win.ProcessMessages();
+        MouseInput mouse = win.GetAndResetMouseInput();
+        if (mouse.isLeftBtnDown && (mouse.moveX != 0 || mouse.moveY != 0)) {
+            camera.ProcessMouseMovement(mouse.moveX, mouse.moveY);
+        }
+
+        if (mouse.scroll != 0) {
+            camera.ProcessMouseScroll(mouse.scroll);
+        }
+        ProcessInput(Cube, myShader);
 
         glClearColor(0.1f, 0.15f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        Quat rot = Quat::FromAxisAngle(Vec3(1, 0, 0).Normalized(), currentFrame * -30.0f);
-        Vec3 pos(sinf(currentFrame) * 0.0f, sinf(currentFrame)*0.0f, 0.0f);
+        //Quat rot = Quat::FromAxisAngle(Vec3(1, 0, 0).Normalized(), currentFrame * -30.0f);
+        Quat rot = Quat::Identity();
+        Vec3 pos(cosf(currentFrame) * 1.0f, cosf(currentFrame)*0.0f, 0.0f);
         DualQuat dq = DualQuat::FromRotationTranslation(rot, pos);
         Mat4 modelFromDQ = dq.ToMat4();
         Mat4 model = modelFromDQ * scaleMatrix;
@@ -112,19 +134,21 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
         myShader.use();
         myShader.setMat4("projection", projection);
+        
+        Mat4 view = camera.GetViewMatrix();
         myShader.setMat4("view", view);
         //myShader.setMat4("model", model);
 
         //TODO cleanup
-        myShader.setVec3("lightPos", Vec3(0.0f, 3.0f, 0.0f));
+        Vec3 ligthPos = Vec3(1.5f, cosf(currentFrame) * 2.0f, 0.0f);
+        myShader.setVec3("lightPos", ligthPos);
         myShader.setVec3("viewPos", Vec3(0.0f, 0.0f, -3.0f));
         myShader.setVec3("lightColor", Vec3(1.0f, 1.0f, 1.0f));
         myShader.setFloat("material.shininess", 64.0f);
         
-        win.ProcessMessages();
-        ProcessInput(myCube1, myShader);
-        myCube1.Update(deltaTime);
-        myCube1.Draw(myShader, model);
+
+        Cube.Update(deltaTime);
+        Cube.Draw(myShader, model);
 
         win.Swap();
     }

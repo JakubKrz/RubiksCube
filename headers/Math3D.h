@@ -28,9 +28,26 @@ struct Vec3 {
 		}
 		return Vec3(0.0f, 0.0f, 0.0f);
 	}
-	Vec3 operator*(const float& other)
+	Vec3 operator*(const float& other) const
 	{
 		return Vec3(x * other, y * other, z * other);
+	}
+
+	Vec3 operator-(const Vec3& other) const
+	{
+		return Vec3(x - other.x, y - other.y, z - other.z);
+	}
+
+	float Dot(const Vec3& other) const {
+		return x * other.x + y * other.y + z * other.z;
+	}
+
+	Vec3 Cross(const Vec3& other) const {
+		return Vec3(
+			y * other.z - z * other.y,
+			z * other.x - x * other.z,
+			x * other.y - y * other.x
+		);
 	}
 };
 
@@ -102,6 +119,32 @@ struct Mat4 {
 		mat.m[15] = 1.0f;
 
 		return mat;
+	}
+
+	static Mat4 LookAt(const Vec3& position, const Vec3& target, const Vec3& up) {
+		Vec3 zAxis = (position - target).Normalized();
+		Vec3 xAxis = up.Cross(zAxis).Normalized();
+		Vec3 yAxis = zAxis.Cross(xAxis);
+
+		Mat4 res = Identity();
+
+		res.m[0] = xAxis.x;
+		res.m[4] = xAxis.y;
+		res.m[8] = xAxis.z;
+
+		res.m[1] = yAxis.x;
+		res.m[5] = yAxis.y;
+		res.m[9] = yAxis.z;
+
+		res.m[2] = zAxis.x;
+		res.m[6] = zAxis.y;
+		res.m[10] = zAxis.z;
+
+		res.m[12] = -xAxis.Dot(position);
+		res.m[13] = -yAxis.Dot(position);
+		res.m[14] = -zAxis.Dot(position);
+
+		return res;
 	}
 };
 

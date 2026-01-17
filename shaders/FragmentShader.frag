@@ -36,6 +36,6 @@ void main()
     float spec = pow(max(dot(norm, halfwayDir), 0.0), material.shininess);
     vec3 specular =  spec * lightColor;
 
-    vec3 result = (ambient + diffuse + specular) * color;
+    vec3 result = (ambient + diffuse + specular);//TODO add *color
     FragColor = vec4(result, 1.0);
 }

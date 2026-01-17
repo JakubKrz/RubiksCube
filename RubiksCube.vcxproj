@@ -139,6 +139,7 @@
     <ClInclude Include="GL\glcorearb.h" />
     <ClInclude Include="GL\glext.h" />
     <ClInclude Include="GL\wglext.h" />
+    <ClInclude Include="headers\Camera.h" />
     <ClInclude Include="headers\GLFunctionsList.h" />
     <ClInclude Include="headers\GLLoader.h" />
     <ClInclude Include="headers\Helpers.h" />
