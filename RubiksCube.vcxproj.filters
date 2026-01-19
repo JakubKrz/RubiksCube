@@ -111,5 +111,11 @@
     <Image Include="Resource\CubeTexture.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Resource\Tiles.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resource\wall.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

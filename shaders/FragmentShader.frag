@@ -7,6 +7,7 @@ in vec3 FragPos;
 
 struct Material {
     sampler2D diffuse1;
+    sampler2D diffuse2;
     float shininess;
 };
 
@@ -27,18 +28,22 @@ struct SpotLight {
     float linear;
     float quadratic;
 };
-uniform Material material;
-uniform DirectionalLight dirLight;
-uniform SpotLight spotLight;
 
 vec3 CalcDirLight(DirectionalLight light, vec3 normal, vec3 viewDir, vec3 albedo);
 vec3 CalcSpotLight(SpotLight spotLight, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 albedo);
 
+uniform Material material;
+uniform DirectionalLight dirLight;
+uniform SpotLight spotLight;
 uniform vec3 viewPos;
+uniform float mixAlpha;
+uniform float specularStrength;
 
 void main()
 {
-    vec3 color = texture(material.diffuse1, TexCoords).rgb;
+    vec4 texColor1 = texture(material.diffuse1, TexCoords);
+    vec4 texColor2 = texture(material.diffuse2, TexCoords);
+    vec3 color = mix(texColor1, texColor2, mixAlpha).rgb;
 
     vec3 norm = normalize(Normal);
     vec3 viewDir = normalize(viewPos - FragPos);
@@ -62,7 +67,7 @@ vec3 CalcDirLight(DirectionalLight light, vec3 normal, vec3 viewDir, vec3 albedo
 
     vec3 ambient  = light.color * 0.1 * albedo;
     vec3 diffuse  = light.color * diff * albedo;
-    vec3 specular = light.color * spec;
+    vec3 specular = light.color * spec * specularStrength;
 
     return (ambient + diffuse + specular);
 }

@@ -113,6 +113,7 @@ unsigned int Loader::LoadTexture(const char* path) {
     }
     else {
         std::cout << "BLAD: Nie udalo sie wczytac tekstury: " << path << std::endl;
+        std::cout << "Powod: " << stbi_failure_reason() << std::endl;
         stbi_image_free(data);
     }
 

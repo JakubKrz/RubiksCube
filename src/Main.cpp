@@ -107,6 +107,32 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     //TODO remove unused includes
     Mat4 scaleMatrix = Mat4::Scale(10.0f);
 
+    //----------------------------------------------------------------
+    //Temporary floor
+    std::vector<Vertex> floorVertices = {
+        { { 25.0f, -2.0f,  25.0f}, {0.0f, 1.0f, 0.0f}, {10.0f, 0.0f} },
+        { {-25.0f, -2.0f,  25.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f} },
+        { {-25.0f, -2.0f, -25.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 10.0f} },
+        { { 25.0f, -2.0f, -25.0f}, {0.0f, 1.0f, 0.0f}, {10.0f, 10.0f} }
+    };
+    std::vector<unsigned int> floorIndices = {
+        0, 2, 1,
+        0, 3, 2
+    };
+    std::vector<Texture> floorTextures;
+    Texture texWood;
+    texWood.id = Loader::LoadTexture("Resource/wall.jpg");
+    texWood.type = "diffuse";
+    floorTextures.push_back(texWood);
+
+    Texture texDirt;
+    texDirt.id = Loader::LoadTexture("Resource/Tiles.jpg");
+    texDirt.type = "diffuse";
+    floorTextures.push_back(texDirt);
+
+    Mesh floorMesh(floorVertices, floorIndices, floorTextures);
+    //----------------------------------------------------------------
+
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     while (win.IsOpen()) {
@@ -145,11 +171,12 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
         //TODO cleanup
         //Vec3 ligthPos = Vec3(cosf(currentFrame * 0.5f)* 1.5f, -1.0f, cosf(currentFrame * 0.25f) *0.0f);
-        myShader.setVec3("viewPos", Vec3(0.0f, 0.0f, -3.0f));
+        myShader.setVec3("viewPos", camera.Position);
 
         myShader.setFloat("material.shininess", 64.0f);
+        myShader.setFloat("specularStrength", 0.8f);
 
-        myShader.setVec3("dirLight.direction", Vec3(cosf(currentFrame)*1.0f, 0.0f, sinf(currentFrame)*1.0f));
+        myShader.setVec3("dirLight.direction", Vec3(cosf(currentFrame*0.3f), -0.5f, sinf(currentFrame*0.3f)));
         myShader.setVec3("dirLight.color", Vec3(1.0f, 1.0f, 1.0f));
 
         myShader.setVec3("spotLight.position", Vec3(0.0f, 3.0f, 0.0f));
@@ -163,9 +190,16 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
         myShader.setFloat("spotLight.cutOff", cosf(12.5f * 3.14159f / 180.0f));
         myShader.setFloat("spotLight.outerCutOff", cosf(17.5f * 3.14159f / 180.0f));
         
-
+        myShader.setFloat("mixAlpha", 0.0f);
         Cube.Update(deltaTime);
         Cube.Draw(myShader, model);
+
+        Mat4 floorModel = Mat4::Identity();
+        myShader.setFloat("material.shininess", 256.0f);
+        myShader.setFloat("specularStrength", 0.2f);
+        myShader.setMat4("model", floorModel);
+        myShader.setFloat("mixAlpha", 0.3f);
+        floorMesh.Draw(myShader);
 
         win.Swap();
     }
