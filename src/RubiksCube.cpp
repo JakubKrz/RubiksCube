@@ -1,11 +1,9 @@
-#include "RubiksCube.h"
+﻿#include "RubiksCube.h"
 #include <iostream>
 #include <chrono>
 #include <future>
 
-RubiksCube::RubiksCube()
-{
-}
+RubiksCube::RubiksCube() = default;
 RubiksCube::~RubiksCube() = default;
 
 void RubiksCube::Init(const char* texturePath, std::string modelPathPrefix) {
@@ -48,18 +46,17 @@ void RubiksCube::Init(const char* texturePath, std::string modelPathPrefix) {
         int gx = (i % 3) - 1;
         int gy = ((i / 3) % 3) - 1;
         int gz = (i / 9) - 1;
-        cubies[i].setGridPosition(gx, gy, gz);
 
-        cubies[i].id = i;
+        LogicalCubie c(i, static_cast<Layer>(gx), static_cast<Layer>(gy), static_cast<Layer>(gz));
+        cubies[i].logic = c;
+
         cubies[i].mesh = std::make_unique<Mesh>(
             std::move(loadedVertices[i]),
             emptyIndices,
             sharedTextures
         );
 
-
-
-        Vec3 startPos = cubies[i].getGridPosition() * spacing;
+        Vec3 startPos = cubies[i].logic.getGridPosition() * spacing;
         startPos.z *= -1;
         Quat startRot = Quat::Identity();
         cubies[i].transform = DualQuat::FromRotationTranslation(startRot, startPos);
@@ -99,8 +96,6 @@ void RubiksCube::Update(float deltaTime) {
         step = targetAngle - currentAngle;
         float direction = currentClockwise ? -1.0f : 1.0f;
         ApplyVisualRotation(currentAxis, currentLayer, step * direction);
-
-        UpdateLogicalGrid(currentAxis, currentLayer, currentClockwise);
 
         isAnimating = false;
         currentAngle = 0.0f;
@@ -148,10 +143,7 @@ void RubiksCube::ApplyVisualRotation(Axis axis, Layer layer, float angleDelta) {
     deltaDQ.dual = Quat(0, 0, 0, 0);
 
     for (auto& c : cubies) {
-        bool hit = false;
-        if (axis == Axis::X && c.gx == layer) hit = true;
-        if (axis == Axis::Y && c.gy == layer) hit = true;
-        if (axis == Axis::Z && c.gz == layer) hit = true;
+        bool hit = c.logic.IsAffected(axis, layer);
 
         if (hit) {
             c.transform = deltaDQ * c.transform;
@@ -162,58 +154,14 @@ void RubiksCube::ApplyVisualRotation(Axis axis, Layer layer, float angleDelta) {
 
 void RubiksCube::UpdateLogicalGrid(Axis axis, Layer layer, bool clockwise) {
     for (auto& c : cubies) {
-        bool hit = false;
-        if (axis == Axis::X && c.gx == layer) hit = true;
-        if (axis == Axis::Y && c.gy == layer) hit = true;
-        if (axis == Axis::Z && c.gz == layer) hit = true;
-
-        if (!hit) continue;
-
-        Layer oldX = c.gx;
-        Layer oldY = c.gy;
-        Layer oldZ = c.gz;
-
-        switch (axis) {
-        case Axis::X:
-            if (clockwise) {
-                c.gy = -oldZ;
-                c.gz = oldY;
-            }
-            else {
-                c.gy = oldZ;
-                c.gz = -oldY;
-            }
-            break;
-
-        case Axis::Y:
-            if (clockwise) {
-                c.gz = -oldX;
-                c.gx = oldZ;
-            }
-            else {
-                c.gz = oldX;
-                c.gx = -oldZ;
-            }
-            break;
-
-        case Axis::Z:
-            if (clockwise) {
-                c.gx = oldY;
-                c.gy = -oldX;
-            }
-            else {
-                c.gx = -oldY;
-                c.gy = oldX;
-            }
-            break;
-        }
+        c.logic.UpdateLogic(axis, layer, clockwise);
     }
 }
 
 void RubiksCube::ProcessNextMove() {
     if (moveQueue.empty()) return;
 
-    MoveRequest move = moveQueue.front();
+    Move move = moveQueue.front();
     moveQueue.pop_front();
 
     isAnimating = true;
@@ -221,4 +169,13 @@ void RubiksCube::ProcessNextMove() {
     currentAxis = move.axis;
     currentLayer = move.layer;
     currentClockwise = move.clockwise;
+    UpdateLogicalGrid(move.axis, move.layer, move.clockwise);
+}
+
+std::array<LogicalCubie, 27> RubiksCube::GetLogicalState() const {
+    std::array<LogicalCubie, 27> state;
+    for (size_t i = 0; i < 27; ++i) {
+        state[i] = cubies[i].logic;
+    }
+    return state;
 }

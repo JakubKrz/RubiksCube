@@ -6,43 +6,28 @@
 #include "Shader.h"
 #include "Loader.h"
 #include "Helpers.h"
+#include "CubeState.h"
 #include <memory>
 #include <array>
 #include <deque>
 #include <cstdlib>
 
+struct Cubie {
+    std::unique_ptr<Mesh> mesh;
+    DualQuat transform;
+    LogicalCubie logic;
+
+    Cubie() noexcept : mesh(nullptr), transform(), logic() {}
+    Cubie(const Cubie&) = delete;
+    Cubie& operator=(const Cubie&) = delete;
+};
+
 class RubiksCube {
+    friend class Solver;
 private:
-    struct Cubie {
-        std::unique_ptr<Mesh> mesh;
-        DualQuat transform;
-        int id;
-        Layer gx, gy, gz;
-
-        Vec3 getGridPosition() const {
-            return Vec3(
-                static_cast<float>(gx),
-                static_cast<float>(gy),
-                static_cast<float>(gz)
-            );
-        }
-
-        void setGridPosition(int x, int y, int z) {
-            gx = static_cast<Layer>(x);
-            gy = static_cast<Layer>(y);
-            gz = static_cast<Layer>(z);
-        }
-    };
-
-    struct MoveRequest {
-        Axis axis;
-        Layer layer;
-        bool clockwise;
-    };
-
     std::array<Cubie, 27> cubies;
     std::vector<Texture> sharedTextures;
-    std::deque<MoveRequest> moveQueue;
+    std::deque<Move> moveQueue;
 
 public:
     RubiksCube();
@@ -53,6 +38,7 @@ public:
     void QueueRotation(Axis axis, Layer layer, bool clockwise);
     void Update(float deltaTime);
     void Scramble(int movesCount);
+    std::array<LogicalCubie, 27> GetLogicalState() const;
 
 private:
     void ApplyVisualRotation(Axis axis, Layer layer, float angleDelta);
@@ -62,9 +48,9 @@ private:
     bool isAnimating = false;
     float currentAngle = 0.0f;
     float targetAngle = 90.0f;
-    float defaultSpeed = 270.0f;
-    float rotationSpeed = 270.0f; // angle/sec
-    
+    float defaultSpeed = 1000.0f;
+    float rotationSpeed = 1000.0f; //270.0f; // angle/sec
+
     float scrambleRotationSpeed = 1000.0f;
     bool isScrambling = false;
 

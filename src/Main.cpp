@@ -1,21 +1,18 @@
 #include <windows.h>
 #include <GL/gl.h>
-#include <iostream>
-#include <vector>
-#include "GL/wglext.h"
+#include <map>
+
 #include "Window.h"
 #include "OpenGLContext.h"
 #include "Shader.h"
-#include "GLLoader.h"
 #include "Math3D.h"
 #include "Helpers.h"
-#include "Mesh.h"
-#include "Loader.h"
 #include "RubiksCube.h"
 #include "Camera.h"
-#include <map>
+#include "CubeState.h"
 
 std::map<int, bool> keyPreviousState;
+bool wireframeModeOn = false;
 
 static bool IsKeyPressedOnce(int vKey) {
     bool isPressedNow = (GetAsyncKeyState(vKey) & 0x8000) != 0;
@@ -46,12 +43,12 @@ static void ProcessInput(RubiksCube& cube, Shader& shader) {
         cube.QueueRotation(Axis::Y, Layer::Negative, clockwise);
     }
 
-    // F - Front (Przednia œcianka)
-    if (IsKeyPressedOnce('F')) {
+    // B - scianka dalej
+    if (IsKeyPressedOnce('B')) {
         cube.QueueRotation(Axis::Z, Layer::Positive, clockwise);
     }
-    // B - Back (Tylna œcianka)
-    if (IsKeyPressedOnce('B')) {
+    // F - scianka blizej
+    if (IsKeyPressedOnce('F')) {
         cube.QueueRotation(Axis::Z, Layer::Negative, clockwise);
     }
 
@@ -65,7 +62,14 @@ static void ProcessInput(RubiksCube& cube, Shader& shader) {
 
     if (IsKeyPressedOnce('W'))
     {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //Wireframe
+        wireframeModeOn = !wireframeModeOn;
+        if (wireframeModeOn) {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //Wireframe
+        }
+        else
+        {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        }
     }
 }
 
@@ -126,7 +130,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
         //Quat rot = Quat::FromAxisAngle(Vec3(1, 0, 0).Normalized(), currentFrame * -30.0f);
         Quat rot = Quat::Identity();
-        Vec3 pos(cosf(currentFrame) * 1.0f, cosf(currentFrame)*0.0f, 0.0f);
+        Vec3 pos(cosf(currentFrame) * 0.0f, cosf(currentFrame)*0.0f, 0.0f);
         DualQuat dq = DualQuat::FromRotationTranslation(rot, pos);
         Mat4 modelFromDQ = dq.ToMat4();
         Mat4 model = modelFromDQ * scaleMatrix;
@@ -140,11 +144,24 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
         //myShader.setMat4("model", model);
 
         //TODO cleanup
-        Vec3 ligthPos = Vec3(1.5f, cosf(currentFrame) * 2.0f, 0.0f);
-        myShader.setVec3("lightPos", ligthPos);
+        //Vec3 ligthPos = Vec3(cosf(currentFrame * 0.5f)* 1.5f, -1.0f, cosf(currentFrame * 0.25f) *0.0f);
         myShader.setVec3("viewPos", Vec3(0.0f, 0.0f, -3.0f));
-        myShader.setVec3("lightColor", Vec3(1.0f, 1.0f, 1.0f));
+
         myShader.setFloat("material.shininess", 64.0f);
+
+        myShader.setVec3("dirLight.direction", Vec3(cosf(currentFrame)*1.0f, 0.0f, sinf(currentFrame)*1.0f));
+        myShader.setVec3("dirLight.color", Vec3(1.0f, 1.0f, 1.0f));
+
+        myShader.setVec3("spotLight.position", Vec3(0.0f, 3.0f, 0.0f));
+        myShader.setVec3("spotLight.direction", Vec3(0.0f, -1.0f, 0.0f));
+        myShader.setVec3("spotLight.color", Vec3(1.0f, 1.0f, 1.0f));
+
+        myShader.setFloat("spotLight.constant", 1.0f);
+        myShader.setFloat("spotLight.linear", 0.09f);
+        myShader.setFloat("spotLight.quadratic", 0.032f);
+
+        myShader.setFloat("spotLight.cutOff", cosf(12.5f * 3.14159f / 180.0f));
+        myShader.setFloat("spotLight.outerCutOff", cosf(17.5f * 3.14159f / 180.0f));
         
 
         Cube.Update(deltaTime);
