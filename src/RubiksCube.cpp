@@ -78,10 +78,8 @@ void RubiksCube::QueueRotation(Axis axis, Layer layer, bool clockwise) {
         ProcessNextMove();
     }
 }
-
 void RubiksCube::Update(float deltaTime) {
     if (isScrambling && moveQueue.empty() && !isAnimating) {
-        rotationSpeed = defaultSpeed;
         isScrambling = false;
     }
 
@@ -90,22 +88,26 @@ void RubiksCube::Update(float deltaTime) {
         return;
     }
 
-    float step = rotationSpeed * deltaTime;
+    animationTime += deltaTime;
 
-    if (currentAngle + step >= targetAngle) {
-        step = targetAngle - currentAngle;
-        float direction = currentClockwise ? -1.0f : 1.0f;
-        ApplyVisualRotation(currentAxis, currentLayer, step * direction);
-
-        isAnimating = false;
-        currentAngle = 0.0f;
-
-        ProcessNextMove();
+    float t = animationTime / animationDuration;
+    if (t >= 1.0f) {
+        t = 1.0f;
     }
-    else {
-        float direction = currentClockwise ? -1.0f : 1.0f;
-        ApplyVisualRotation(currentAxis, currentLayer, step * direction);
-        currentAngle += step;
+
+    float easedT = isScrambling ? t : EaseInOut(t);
+
+    float targetAngleNow = easedT * targetAngle;
+    float deltaAngle = targetAngleNow - totalAngleRotated;
+
+    float direction = currentClockwise ? -1.0f : 1.0f;
+    ApplyVisualRotation(currentAxis, currentLayer, deltaAngle * direction);
+
+    totalAngleRotated = targetAngleNow;
+
+    if (t >= 1.0f) {
+        isAnimating = false;
+        ProcessNextMove();
     }
 }
 
@@ -165,7 +167,9 @@ void RubiksCube::ProcessNextMove() {
     moveQueue.pop_front();
 
     isAnimating = true;
-    currentAngle = 0.0f;
+    animationTime = 0.0f;
+    totalAngleRotated = 0.0f;
+    animationDuration = isScrambling ? scrambleAnimationDuration : defaultAnimationDuration;
     currentAxis = move.axis;
     currentLayer = move.layer;
     currentClockwise = move.clockwise;
@@ -187,4 +191,8 @@ bool RubiksCube::IsSolved() const {
         }
     }
     return true;
+}
+
+float RubiksCube::EaseInOut(float t) {
+    return t * t * (3.0f - 2.0f * t);
 }

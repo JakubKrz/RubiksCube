@@ -45,6 +45,7 @@ private:
     void ApplyVisualRotation(Axis axis, Layer layer, float angleDelta);
     void UpdateLogicalGrid(Axis axis, Layer layer, bool clockwise);
     void ProcessNextMove();
+    float EaseInOut(float t);
 
     bool isAnimating = false;
     float currentAngle = 0.0f;
@@ -58,4 +59,12 @@ private:
     Axis currentAxis = Axis::X;
     Layer currentLayer = Layer::Middle;
     bool currentClockwise = false;
+
+    float animationTime = 0.0f;
+    float animationDuration = 0.3f;
+    float defaultAnimationDuration = 0.3f;
+    float scrambleAnimationDuration = 0.05f;
+    float totalAngleRotated = 0.0f;
+
+    
 };
