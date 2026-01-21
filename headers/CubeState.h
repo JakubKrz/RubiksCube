@@ -28,7 +28,7 @@ struct LogicalCubie {
 
     }
 
-    Color GetColorAtFace(Face dir) {
+    Color GetColorAtFace(Face dir) const {
         return colors[(int)dir];
     }
 
@@ -155,5 +155,18 @@ struct LogicalCubie {
         if (axis == Axis::Y && gy == layer) return true;
         if (axis == Axis::Z && gz == layer) return true;
         return false;
+    }
+
+    bool IsCorrect() const {
+        if (gy == Layer::Positive && GetColorAtFace(Face::UP) != Color::WHITE) return false;
+        if (gy == Layer::Negative && GetColorAtFace(Face::DOWN) != Color::YELLOW) return false;
+
+        if (gx == Layer::Positive && GetColorAtFace(Face::RIGHT) != Color::GREEN) return false;
+        if (gx == Layer::Negative && GetColorAtFace(Face::LEFT) != Color::ORANGE) return false;
+
+        if (gz == Layer::Negative && GetColorAtFace(Face::FRONT) != Color::RED) return false;
+        if (gz == Layer::Positive && GetColorAtFace(Face::BACK) != Color::BLUE) return false;
+
+        return true;
     }
 };

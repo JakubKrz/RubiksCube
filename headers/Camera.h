@@ -52,5 +52,9 @@ private:
         Position.x = hDist * sinf(radYaw);
         Position.y = Distance * sinf(radPitch);
         Position.z = hDist * cosf(radYaw);
+
+        if (Position.y < -1.5f) {
+            Position.y = -1.5f;
+        }
     }
 };

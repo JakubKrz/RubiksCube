@@ -10,9 +10,13 @@
 #include "RubiksCube.h"
 #include "Camera.h"
 #include "CubeState.h"
+#include <chrono>
+#include <iomanip>
 
 std::map<int, bool> keyPreviousState;
 bool wireframeModeOn = false;
+static bool isTimerRunning = false;
+static std::chrono::steady_clock::time_point timerStart;
 
 static bool IsKeyPressedOnce(int vKey) {
     bool isPressedNow = (GetAsyncKeyState(vKey) & 0x8000) != 0;
@@ -24,6 +28,24 @@ static bool IsKeyPressedOnce(int vKey) {
 static void ProcessInput(RubiksCube& cube, Shader& shader) {
     bool isShiftHeld = (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0;
     bool clockwise = !isShiftHeld;
+
+    if (IsKeyPressedOnce('T')) {
+        if (!isTimerRunning) {
+            isTimerRunning = true;
+            timerStart = std::chrono::steady_clock::now();
+            std::cout << "\n>>> Timer started! <<<\n" << std::endl;
+        }
+        else {
+            isTimerRunning = false;
+            auto timerEnd = std::chrono::steady_clock::now();
+            std::chrono::duration<double> elapsedSeconds = timerEnd - timerStart;
+
+            std::cout << ">>> Timer stopped! <<<\n";
+            std::cout << "Time elapsed: "
+                << std::fixed << std::setprecision(3) << elapsedSeconds.count()
+                << " s\n" << std::endl;
+        }
+    }
 
     // R - Right (Prawa œcianka)
     if (IsKeyPressedOnce('R')) {
@@ -176,8 +198,27 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
         myShader.setFloat("material.shininess", 64.0f);
         myShader.setFloat("specularStrength", 0.8f);
 
-        myShader.setVec3("dirLight.direction", Vec3(cosf(currentFrame*0.3f), -0.5f, sinf(currentFrame*0.3f)));
-        myShader.setVec3("dirLight.color", Vec3(1.0f, 1.0f, 1.0f));
+        //Ligths
+        float x1 = cosf(currentFrame * 0.3f);
+        float z1 = sinf(currentFrame * 0.3f);
+        Vec3 dir1(x1, -0.5f, z1);
+        Vec3 dir2(-x1, -0.5f, -z1);
+
+        std::array<DirectionalLight, 2> dirLights;
+        dirLights[0].direction = dir1;
+        dirLights[0].color = Vec3(1.0f, 0.9f, 1.0f);
+        dirLights[1].direction = dir2;
+        dirLights[1].color = Vec3(0.7f, 1.0f, 0.8f);
+
+        myShader.setInt("nrOfDirLights", (int)dirLights.size());
+        
+        for (size_t i = 0; i < dirLights.size(); i++)
+        {
+            std::string baseName = "dirLights[" + std::to_string(i) + "]";
+
+            myShader.setVec3(baseName + ".direction", dirLights[i].direction);
+            myShader.setVec3(baseName + ".color", dirLights[i].color);
+        }
 
         myShader.setVec3("spotLight.position", Vec3(0.0f, 3.0f, 0.0f));
         myShader.setVec3("spotLight.direction", Vec3(0.0f, -1.0f, 0.0f));
@@ -193,10 +234,21 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
         myShader.setFloat("mixAlpha", 0.0f);
         Cube.Update(deltaTime);
         Cube.Draw(myShader, model);
+        if (Cube.IsSolved() && isTimerRunning)
+        {
+            isTimerRunning = false;
+            auto timerEnd = std::chrono::steady_clock::now();
+            std::chrono::duration<double> elapsedSeconds = timerEnd - timerStart;
+
+            std::cout << ">>> Timer stopped! <<<\n";
+            std::cout << "Time elapsed: "
+                << std::fixed << std::setprecision(3) << elapsedSeconds.count()
+                << " s\n" << std::endl;
+        }
 
         Mat4 floorModel = Mat4::Identity();
         myShader.setFloat("material.shininess", 256.0f);
-        myShader.setFloat("specularStrength", 0.2f);
+        myShader.setFloat("specularStrength", 0.01f);
         myShader.setMat4("model", floorModel);
         myShader.setFloat("mixAlpha", 0.3f);
         floorMesh.Draw(myShader);

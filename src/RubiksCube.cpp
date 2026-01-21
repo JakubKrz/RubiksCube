@@ -179,3 +179,12 @@ std::array<LogicalCubie, 27> RubiksCube::GetLogicalState() const {
     }
     return state;
 }
+
+bool RubiksCube::IsSolved() const {
+    for (int i = 0; i < 27; i++) {
+        if (!cubies[i].logic.IsCorrect()) {
+            return false;
+        }
+    }
+    return true;
+}

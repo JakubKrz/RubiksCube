@@ -6,6 +6,11 @@
 #include <array>
 #include "Math3D.h"
 
+struct DirectionalLight {
+    Vec3 direction;
+    Vec3 color;
+};
+
 enum class Axis { X, Y, Z };
 
 enum class Layer {

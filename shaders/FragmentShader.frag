@@ -1,4 +1,5 @@
 #version 460 core
+
 out vec4 FragColor;
 
 in vec2 TexCoords;
@@ -33,8 +34,12 @@ vec3 CalcDirLight(DirectionalLight light, vec3 normal, vec3 viewDir, vec3 albedo
 vec3 CalcSpotLight(SpotLight spotLight, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 albedo);
 
 uniform Material material;
-uniform DirectionalLight dirLight;
+//Lights
+#define MAX_DIR_LIGHTS 4
+uniform int nrOfDirLights;
+uniform DirectionalLight dirLights[MAX_DIR_LIGHTS];
 uniform SpotLight spotLight;
+
 uniform vec3 viewPos;
 uniform float mixAlpha;
 uniform float specularStrength;
@@ -49,11 +54,24 @@ void main()
     vec3 viewDir = normalize(viewPos - FragPos);
 
     vec3 result = vec3(0.0);
-
-    result += CalcDirLight(dirLight, norm, viewDir, color);
+    for(int i = 0; i < nrOfDirLights; i++)
+    {
+        if (i >= MAX_DIR_LIGHTS) break;    
+        result += CalcDirLight(dirLights[i], norm, viewDir, color);
+    }
     result += CalcSpotLight(spotLight, norm, FragPos, viewDir, color);
 
-    FragColor = vec4(result, 1.0);
+    float distance = length(viewPos - FragPos);
+
+    //Fog
+    float fogStart = 2.5;
+    float fogEnd = 30.0;
+    vec3 fogColor = vec3(0.1, 0.15, 0.2);
+    float fogFactor = (distance - fogStart) / (fogEnd - fogStart);
+    fogFactor = clamp(fogFactor, 0.0, 1.0);
+    vec3 finalColor = mix(result, fogColor, fogFactor);
+
+    FragColor = vec4(finalColor, 1.0);
 }
 
 vec3 CalcDirLight(DirectionalLight light, vec3 normal, vec3 viewDir, vec3 albedo)

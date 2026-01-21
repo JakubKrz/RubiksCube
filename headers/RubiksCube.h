@@ -38,6 +38,7 @@ public:
     void QueueRotation(Axis axis, Layer layer, bool clockwise);
     void Update(float deltaTime);
     void Scramble(int movesCount);
+    bool IsSolved() const;
     std::array<LogicalCubie, 27> GetLogicalState() const;
 
 private:
@@ -48,8 +49,8 @@ private:
     bool isAnimating = false;
     float currentAngle = 0.0f;
     float targetAngle = 90.0f;
-    float defaultSpeed = 1000.0f;
-    float rotationSpeed = 1000.0f; //270.0f; // angle/sec
+    float defaultSpeed = 360.0f;
+    float rotationSpeed = 360.0f; //270.0f; // angle/sec
 
     float scrambleRotationSpeed = 1000.0f;
     bool isScrambling = false;
