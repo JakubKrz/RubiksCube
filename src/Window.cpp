@@ -53,7 +53,9 @@ LRESULT CALLBACK Window::WindowProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
     case WM_SIZE:
         width = LOWORD(lp);
         height = HIWORD(lp);
+        if (height == 0) height = 1;
         aspectRation = (float)width / height;
+        glViewport(0, 0, width, height);
         break;
     case WM_CLOSE:
         isOpen = false;

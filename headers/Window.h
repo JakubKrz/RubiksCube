@@ -1,6 +1,7 @@
 #pragma once
 #include <Windows.h>
 #include <string>
+#include "GLLoader.h"
 
 struct MouseInput {
 	float moveX;
@@ -17,6 +18,9 @@ public:
 	bool IsOpen() const { return isOpen; }
 	void Swap();
 	MouseInput GetAndResetMouseInput();
+	int GetWidth() const { return width; }
+	int GetHeight() const { return height; }
+	float GetAspectRatio() const { return aspectRation; }
 
 	HWND GetHWND() const { return windowHandle; }
 	HDC  GetHDC()  const { return deviceContext; }

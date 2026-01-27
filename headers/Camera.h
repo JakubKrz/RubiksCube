@@ -20,7 +20,7 @@ public:
     }
 
     Mat4 GetViewMatrix() {
-        return Mat4::LookAt(Position, Vec3(0, 0, 0), Vec3(0, 1, 0));
+        return Mat4::LookAt(Position, Vec3(0, 1.5, 0), Vec3(0, 1, 0));
     }
 
     void ProcessMouseMovement(float xoffset, float yoffset) {
@@ -39,6 +39,13 @@ public:
         if (Distance < MinDist) Distance = MinDist;
         if (Distance > MaxDist) Distance = MaxDist;
 
+        UpdatePosition();
+    }
+
+    void Reset() {
+        Distance = 8.0f;
+        Yaw = 0.0f;
+        Pitch = 20.0f;
         UpdatePosition();
     }
 

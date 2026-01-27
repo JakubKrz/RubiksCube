@@ -12,7 +12,7 @@ void RubiksCube::Init(const char* texturePath, std::string modelPathPrefix) {
     tex.type = "diffuse";
     tex.path = texturePath;
     sharedTextures.push_back(tex);
-    float spacing = 0.03f;
+    float spacing = 0.028f;
 
     const size_t numThreads = std::thread::hardware_concurrency();
     std::vector<std::vector<Vertex>> loadedVertices(cubies.size());
@@ -161,11 +161,30 @@ void RubiksCube::UpdateLogicalGrid(Axis axis, Layer layer, bool clockwise) {
 }
 
 void RubiksCube::ProcessNextMove() {
-    if (moveQueue.empty()) return;
+    if (moveQueue.empty()) {
+        isUndoing = false;
+        return;
+    }
 
     Move move = moveQueue.front();
     moveQueue.pop_front();
 
+    if (!isUndoing)
+    {
+        if (!history.empty()) {
+            Move& lastMove = history.back();
+            if (lastMove.axis == move.axis && lastMove.layer == move.layer && lastMove.clockwise != move.clockwise) {
+                history.pop_back();
+
+            }
+            else {
+                history.push_back(move);
+            }
+        }
+        else {
+            history.push_back(move);
+        }
+    }
     isAnimating = true;
     animationTime = 0.0f;
     totalAngleRotated = 0.0f;
@@ -195,4 +214,34 @@ bool RubiksCube::IsSolved() const {
 
 float RubiksCube::EaseInOut(float t) {
     return t * t * (3.0f - 2.0f * t);
+}
+
+void RubiksCube::UndoAll() {
+    if (history.empty() || isAnimating || isScrambling) return;
+
+    isUndoing = true;
+
+    for (auto it = history.rbegin(); it != history.rend(); ++it) {
+        Move recordedMove = *it;
+
+        Move reverseMove = {
+            recordedMove.axis,
+            recordedMove.layer,
+            !recordedMove.clockwise
+        };
+
+        moveQueue.push_back(reverseMove);
+    }
+
+    history.clear();
+}
+
+void RubiksCube::UndoLast() {
+    if (history.empty() || isAnimating || isScrambling) return;
+
+    Move lastMove = history.back();
+    history.pop_back();
+    isUndoing = true;
+
+    QueueRotation(lastMove.axis, lastMove.layer, !lastMove.clockwise);
 }

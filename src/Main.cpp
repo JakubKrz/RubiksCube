@@ -1,6 +1,7 @@
 #include <windows.h>
 #include <GL/gl.h>
 #include <map>
+#include <chrono>
 
 #include "Window.h"
 #include "OpenGLContext.h"
@@ -9,14 +10,13 @@
 #include "Helpers.h"
 #include "RubiksCube.h"
 #include "Camera.h"
-#include "CubeState.h"
-#include <chrono>
-#include <iomanip>
+
 
 std::map<int, bool> keyPreviousState;
 bool wireframeModeOn = false;
 static bool isTimerRunning = false;
 static std::chrono::steady_clock::time_point timerStart;
+static bool drawTable = true;
 
 static bool IsKeyPressedOnce(int vKey) {
     bool isPressedNow = (GetAsyncKeyState(vKey) & 0x8000) != 0;
@@ -25,7 +25,31 @@ static bool IsKeyPressedOnce(int vKey) {
     keyPreviousState[vKey] = isPressedNow;
     return isPressedNow && !wasPressedLast;
 }
-static void ProcessInput(RubiksCube& cube, Shader& shader) {
+
+void PrintControls() {
+    std::cout << "========================================================\n";
+    std::cout << "                RUBIK'S CUBE CONTROLS                   \n";
+    std::cout << "========================================================\n";
+    std::cout << " [R] - Right Face               [L] - Left Face         \n";
+    std::cout << " [U] - Up Face                  [D] - Down Face         \n";
+    std::cout << " [F] - Front Face               [B] - Back Face         \n";
+    std::cout << "--------------------------------------------------------\n";
+    std::cout << " [SHIFT] + Key - Rotate in opposite direction           \n";
+    std::cout << " [Q] - Scramble Cube                                    \n";
+    std::cout << " [P] - Undo All Moves                                   \n";
+    std::cout << "--------------------------------------------------------\n";
+    std::cout << " [W] - Toggle Wireframe Mode                            \n";
+    std::cout << " [X] - Toggle Table Visibility                          \n";
+    std::cout << " [S] - Reload Shaders                                   \n";
+    std::cout << " [O] - Reset Camera Position                            \n";
+    std::cout << "--------------------------------------------------------\n";
+    std::cout << " MOUSE:\n";
+    std::cout << " [LMB + Drag] - Orbit camera around the cube           \n";
+    std::cout << " [Scroll Wheel] - Zoom In / Out                         \n";
+    std::cout << "========================================================\n" << std::endl;
+}
+
+static void ProcessInput(RubiksCube& cube, Shader& shader, Camera& camera) {
     bool isShiftHeld = (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0;
     bool clockwise = !isShiftHeld;
 
@@ -47,29 +71,21 @@ static void ProcessInput(RubiksCube& cube, Shader& shader) {
         }
     }
 
-    // R - Right (Prawa œcianka)
     if (IsKeyPressedOnce('R')) {
         cube.QueueRotation(Axis::X, Layer::Positive, clockwise);
     }
-    // L - Left (Lewa œcianka)
     if (IsKeyPressedOnce('L')) {
         cube.QueueRotation(Axis::X, Layer::Negative, clockwise);
     }
-
-    // U - Up (Górna œcianka)
     if (IsKeyPressedOnce('U')) {
         cube.QueueRotation(Axis::Y, Layer::Positive, clockwise);
     }
-    // D - Down (Dolna œcianka)
     if (IsKeyPressedOnce('D')) {
         cube.QueueRotation(Axis::Y, Layer::Negative, clockwise);
     }
-
-    // B - scianka dalej
     if (IsKeyPressedOnce('B')) {
         cube.QueueRotation(Axis::Z, Layer::Positive, clockwise);
     }
-    // F - scianka blizej
     if (IsKeyPressedOnce('F')) {
         cube.QueueRotation(Axis::Z, Layer::Negative, clockwise);
     }
@@ -93,13 +109,34 @@ static void ProcessInput(RubiksCube& cube, Shader& shader) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
     }
+
+    if (IsKeyPressedOnce('X'))
+    {
+        drawTable = !drawTable;
+    }
+
+    if (IsKeyPressedOnce('O'))
+    {
+        camera.Reset();
+    }
+    if (IsKeyPressedOnce('P'))
+    {
+        cube.UndoAll();
+    }
+
+    if (IsKeyPressedOnce('H'))
+    {
+        PrintControls();
+    }
 }
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow)
 {
+    PrintControls();
     Window win(800, 600, L"Rubic's Cube");
     OpenGLContext gl;
     
@@ -115,6 +152,26 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     RubiksCube Cube;
     Cube.Init("Resource/CubeTexture.png", "Resource/Cubes/");
 
+    //Table
+    std::vector<Vertex> tableVertices;
+    Loader::LoadOBJ("Resource/table.obj", tableVertices);
+    std::vector<unsigned int> objIndices;
+
+    std::vector<Texture> textures;
+
+    Texture diffMap;
+    diffMap.id = Loader::LoadTexture("Resource/Table_BaseColor.png");
+    diffMap.type = "diffuse";
+    textures.push_back(diffMap);
+
+    Texture specMap;
+    specMap.id = Loader::LoadTexture("Resource/Table_MetallicRoughness.png");
+    specMap.type = "specular";
+    textures.push_back(specMap);
+
+    Mesh tableMesh(tableVertices, objIndices, textures);
+    //--------
+
     Camera camera(8.0f);
 
     bool isDragging = false;
@@ -123,14 +180,12 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
     Mat4 projection = Mat4::Perspective(45.0f, 800.0f / 600.0f, 0.1f, 100.0f);
     //Mat4 view = Mat4::Translation(Vec3(0.0f, 0.0f, -3.0f));
-    
-    //TODO yellow faces have inverted normals!!!!!
 
     //TODO remove unused includes
     Mat4 scaleMatrix = Mat4::Scale(10.0f);
 
     //----------------------------------------------------------------
-    //Temporary floor
+    // floor
     std::vector<Vertex> floorVertices = {
         { { 25.0f, -2.0f,  25.0f}, {0.0f, 1.0f, 0.0f}, {10.0f, 0.0f} },
         { {-25.0f, -2.0f,  25.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f} },
@@ -157,6 +212,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
+
     while (win.IsOpen()) {
         float currentFrame = static_cast<float>(GetTime());
         deltaTime = currentFrame - lastFrame;
@@ -171,20 +227,21 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
         if (mouse.scroll != 0) {
             camera.ProcessMouseScroll(mouse.scroll);
         }
-        ProcessInput(Cube, myShader);
+        ProcessInput(Cube, myShader, camera);
 
         glClearColor(0.1f, 0.15f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        //Quat rot = Quat::FromAxisAngle(Vec3(1, 0, 0).Normalized(), currentFrame * -30.0f);
+        //Quat rot = Quat::FromAxisAngle(Vec3(1, 1, 1).Normalized(), currentFrame * -30.0f);
         Quat rot = Quat::Identity();
-        Vec3 pos(cosf(currentFrame) * 0.0f, cosf(currentFrame)*0.0f, 0.0f);
+        Vec3 pos(cosf(currentFrame) * 0.0f, cosf(currentFrame)*0.1f + 1.5f, 0.0f);
         DualQuat dq = DualQuat::FromRotationTranslation(rot, pos);
         Mat4 modelFromDQ = dq.ToMat4();
         Mat4 model = modelFromDQ * scaleMatrix;
 
 
         myShader.use();
+        projection = Mat4::Perspective(45.0f, win.GetAspectRatio(), 0.1f, 100.0f);
         myShader.setMat4("projection", projection);
         
         Mat4 view = camera.GetViewMatrix();
@@ -201,14 +258,13 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
         //Ligths
         float x1 = cosf(currentFrame * 0.3f);
         float z1 = sinf(currentFrame * 0.3f);
-        Vec3 dir1(x1, -0.5f, z1);
-        Vec3 dir2(-x1, -0.5f, -z1);
-
-        std::array<DirectionalLight, 2> dirLights;
+        Vec3 dir1(x1, -0.3f, z1);
+        Vec3 dir2(-x1, 0.3f, -z1);
+        std::array<DirectionalLight, 4> dirLights;
         dirLights[0].direction = dir1;
-        dirLights[0].color = Vec3(1.0f, 0.9f, 1.0f);
+        dirLights[0].color = Vec3(1.0f, 0.8f, 1.0f);
         dirLights[1].direction = dir2;
-        dirLights[1].color = Vec3(0.7f, 1.0f, 0.8f);
+        dirLights[1].color = Vec3(1.0f, 1.0f, 0.8f);
 
         myShader.setInt("nrOfDirLights", (int)dirLights.size());
         
@@ -220,7 +276,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
             myShader.setVec3(baseName + ".color", dirLights[i].color);
         }
 
-        myShader.setVec3("spotLight.position", Vec3(0.0f, 3.0f, 0.0f));
+        myShader.setVec3("spotLight.position", Vec3(0.0f, 6.0f, 0.0f));
         myShader.setVec3("spotLight.direction", Vec3(0.0f, -1.0f, 0.0f));
         myShader.setVec3("spotLight.color", Vec3(1.0f, 1.0f, 1.0f));
 
@@ -252,6 +308,18 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
         myShader.setMat4("model", floorModel);
         myShader.setFloat("mixAlpha", 0.3f);
         floorMesh.Draw(myShader);
+
+        if (drawTable) {
+            Mat4 tableModel = Mat4::Identity();
+            Mat4 tableScaleMatrix = Mat4::Scale(3.0f);
+            Quat tableRot = Quat::FromAxisAngle(Vec3(0.0f, 1.0f, 0.0f), 3.14159f);
+            DualQuat tabledq = DualQuat::FromRotationTranslation(tableRot, Vec3(0.0f, -2.0f, 0.0f));
+            tableModel = tabledq.ToMat4() * tableScaleMatrix;
+
+            myShader.setMat4("model", tableModel);
+            myShader.setFloat("mixAlpha", 0.0f);
+            tableMesh.Draw(myShader);
+        }
 
         win.Swap();
     }

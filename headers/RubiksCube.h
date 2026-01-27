@@ -1,16 +1,16 @@
 #pragma once
 #include <vector>
 #include <string>
+#include <memory>
+#include <array>
+#include <deque>
+#include <cstdlib>
 #include "Mesh.h"
 #include "Math3D.h"
 #include "Shader.h"
 #include "Loader.h"
 #include "Helpers.h"
 #include "CubeState.h"
-#include <memory>
-#include <array>
-#include <deque>
-#include <cstdlib>
 
 struct Cubie {
     std::unique_ptr<Mesh> mesh;
@@ -28,6 +28,7 @@ private:
     std::array<Cubie, 27> cubies;
     std::vector<Texture> sharedTextures;
     std::deque<Move> moveQueue;
+    std::deque<Move> history;
 
 public:
     RubiksCube();
@@ -40,6 +41,9 @@ public:
     void Scramble(int movesCount);
     bool IsSolved() const;
     std::array<LogicalCubie, 27> GetLogicalState() const;
+    void UndoAll();
+    void UndoLast();
+    bool isUndoing = false;
 
 private:
     void ApplyVisualRotation(Axis axis, Layer layer, float angleDelta);
@@ -50,7 +54,7 @@ private:
     bool isAnimating = false;
     float currentAngle = 0.0f;
     float targetAngle = 90.0f;
-    float defaultSpeed = 360.0f;
+    float defaultSpeed = 360.0f; //TODO remove unused
     float rotationSpeed = 360.0f; //270.0f; // angle/sec
 
     float scrambleRotationSpeed = 1000.0f;

@@ -1,8 +1,4 @@
 #include "Loader.h"
-#include "Mesh.h"
-#include <iostream>
-#include <cstdio>
-#include <fstream>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -10,7 +6,7 @@
 bool Loader::LoadOBJ(const char* path, std::vector<Vertex>& out_vertices) {
     std::ifstream file(path, std::ios::binary | std::ios::ate);
     if (!file.is_open()) {
-        printf("Nie mo¿na otworzyæ pliku!\n");
+        printf("Cant open file\n");
         return false;
     }
 
@@ -108,12 +104,10 @@ unsigned int Loader::LoadTexture(const char* path) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        std::cout << "Zaladowano teksture: " << path << std::endl;
     }
     else {
-        std::cout << "BLAD: Nie udalo sie wczytac tekstury: " << path << std::endl;
-        std::cout << "Powod: " << stbi_failure_reason() << std::endl;
+        std::cout << "Cant load texture: " << path << std::endl;
+        std::cout << "Reason: " << stbi_failure_reason() << std::endl;
         stbi_image_free(data);
     }
 

@@ -4,6 +4,8 @@
 #include "Math3D.h"
 #include "Shader.h"
 #include "Helpers.h"
+#include "GLLoader.h"
+
 
 class Mesh {
 public:

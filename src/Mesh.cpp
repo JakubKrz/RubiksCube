@@ -1,5 +1,4 @@
 #include "Mesh.h"
-#include "GLLoader.h"
 
 Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures)
 {
@@ -13,6 +12,8 @@ Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std:
 void Mesh::Draw(Shader& shader)
 {
     unsigned int diffuseNr = 1;
+    unsigned int specularNr = 1;
+    bool hasSpecMap = false;
     for (unsigned int i = 0; i < textures.size(); i++)
     {
         glActiveTexture(GL_TEXTURE0 + i);
@@ -21,10 +22,15 @@ void Mesh::Draw(Shader& shader)
         std::string name = textures[i].type;
         if (name == "diffuse")
             number = std::to_string(diffuseNr++);
+        else if (name == "specular") {
+            number = std::to_string(specularNr++);
+            hasSpecMap = true;
+        }
 
         shader.setInt(("material." + name + number).c_str(), i);
         glBindTexture(GL_TEXTURE_2D, textures[i].id);
     }
+    shader.setBool("hasSpecularMap", hasSpecMap);
 
     glBindVertexArray(VAO);
 
@@ -74,7 +80,7 @@ void Mesh::setupMesh()
     glBindVertexArray(0);
 }
 
-void Mesh::DrawGeometryOnly()//TODOJK moze pozniej mozna sprobowac uzyc
+void Mesh::DrawGeometryOnly()
 {
     glBindVertexArray(VAO);
     if (!indices.empty()) {

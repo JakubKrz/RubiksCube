@@ -9,6 +9,7 @@ in vec3 FragPos;
 struct Material {
     sampler2D diffuse1;
     sampler2D diffuse2;
+    sampler2D specular1;
     float shininess;
 };
 
@@ -30,8 +31,8 @@ struct SpotLight {
     float quadratic;
 };
 
-vec3 CalcDirLight(DirectionalLight light, vec3 normal, vec3 viewDir, vec3 albedo);
-vec3 CalcSpotLight(SpotLight spotLight, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 albedo);
+vec3 CalcDirLight(DirectionalLight light, vec3 normal, vec3 viewDir, vec3 albedo, float specIntensity);
+vec3 CalcSpotLight(SpotLight spotLight, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 albedo, float specIntensity);
 
 uniform Material material;
 //Lights
@@ -43,12 +44,20 @@ uniform SpotLight spotLight;
 uniform vec3 viewPos;
 uniform float mixAlpha;
 uniform float specularStrength;
+uniform bool hasSpecularMap;
 
 void main()
 {
     vec4 texColor1 = texture(material.diffuse1, TexCoords);
     vec4 texColor2 = texture(material.diffuse2, TexCoords);
     vec3 color = mix(texColor1, texColor2, mixAlpha).rgb;
+
+    float currentSpecular;
+    if (hasSpecularMap) {
+        currentSpecular = 1.0 - texture(material.specular1, TexCoords).g;
+    } else {
+        currentSpecular = specularStrength;
+    }
 
     vec3 norm = normalize(Normal);
     vec3 viewDir = normalize(viewPos - FragPos);
@@ -57,9 +66,9 @@ void main()
     for(int i = 0; i < nrOfDirLights; i++)
     {
         if (i >= MAX_DIR_LIGHTS) break;    
-        result += CalcDirLight(dirLights[i], norm, viewDir, color);
+        result += CalcDirLight(dirLights[i], norm, viewDir, color, currentSpecular);
     }
-    result += CalcSpotLight(spotLight, norm, FragPos, viewDir, color);
+    result += CalcSpotLight(spotLight, norm, FragPos, viewDir, color, currentSpecular);
 
     float distance = length(viewPos - FragPos);
 
@@ -70,11 +79,11 @@ void main()
     float fogFactor = (distance - fogStart) / (fogEnd - fogStart);
     fogFactor = clamp(fogFactor, 0.0, 1.0);
     vec3 finalColor = mix(result, fogColor, fogFactor);
-
+    //FragColor = vec4(norm * 0.5 + 0.5, 1.0);
     FragColor = vec4(finalColor, 1.0);
 }
 
-vec3 CalcDirLight(DirectionalLight light, vec3 normal, vec3 viewDir, vec3 albedo)
+vec3 CalcDirLight(DirectionalLight light, vec3 normal, vec3 viewDir, vec3 albedo, float specIntensity)
 {
     vec3 lightDir = normalize(-light.direction);
 
@@ -85,12 +94,12 @@ vec3 CalcDirLight(DirectionalLight light, vec3 normal, vec3 viewDir, vec3 albedo
 
     vec3 ambient  = light.color * 0.1 * albedo;
     vec3 diffuse  = light.color * diff * albedo;
-    vec3 specular = light.color * spec * specularStrength;
+    vec3 specular = light.color * spec * specIntensity;
 
     return (ambient + diffuse + specular);
 }
 
-vec3 CalcSpotLight(SpotLight spotLight, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 albedo)
+vec3 CalcSpotLight(SpotLight spotLight, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 albedo, float specIntensity)
 {
     vec3 lightDir = normalize(spotLight.position - fragPos);
     
@@ -108,7 +117,7 @@ vec3 CalcSpotLight(SpotLight spotLight, vec3 normal, vec3 fragPos, vec3 viewDir,
 
     vec3 ambient = spotLight.color * 0.05 * albedo;
     vec3 diffuse = spotLight.color * diff * albedo;
-    vec3 specular = spotLight.color * spec;
+    vec3 specular = spotLight.color * spec * specIntensity;
 
     ambient *= attenuation;
     diffuse *= attenuation * intensity;

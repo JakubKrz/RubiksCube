@@ -75,9 +75,6 @@
     <ClInclude Include="headers\CubeState.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="headers\Solver.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Main.cpp">
@@ -101,9 +98,6 @@
     <ClCompile Include="src\RubiksCube.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Solver.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\FragmentShader.frag">
@@ -121,6 +115,12 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="Resource\wall.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resource\Table_MetallicRoughness.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resource\Table_BaseColor.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

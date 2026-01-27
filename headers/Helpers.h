@@ -1,9 +1,8 @@
 #pragma once
 #include <windows.h>
-//TODOJK uzylem stbimage,h zewnetrzena biblioteka + przEorbic pozniej metode do wczytywaniaa tekstur gdzie
-#include "stb_image.h"
 #include <iostream>
 #include <array>
+#include "stb_image.h"
 #include "Math3D.h"
 
 struct DirectionalLight {

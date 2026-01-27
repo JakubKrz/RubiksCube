@@ -1,7 +1,11 @@
 #pragma once
 #include <vector>
 #include <string>
+#include <iostream>
+#include <cstdio>
+#include <fstream>
 #include "Math3D.h"
+#include "Mesh.h"
 
 struct Vertex;
 

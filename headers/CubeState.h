@@ -20,10 +20,10 @@ struct LogicalCubie {
         if (gy == Layer::Positive) colors[(int)Face::UP] = Color::WHITE;
         if (gy == Layer::Negative) colors[(int)Face::DOWN] = Color::YELLOW;
 
-        if (gx == Layer::Positive) colors[(int)Face::RIGHT] = Color::GREEN;//TODO zmeienic czerowny z zielonym
+        if (gx == Layer::Positive) colors[(int)Face::RIGHT] = Color::GREEN;
         if (gx == Layer::Negative) colors[(int)Face::LEFT] = Color::ORANGE;
 
-        if (gz == Layer::Negative) colors[(int)Face::FRONT] = Color::RED;//TODO zmeienic czerowny z zielonym
+        if (gz == Layer::Negative) colors[(int)Face::FRONT] = Color::RED;
         if (gz == Layer::Positive) colors[(int)Face::BACK] = Color::BLUE;
 
     }

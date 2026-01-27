@@ -150,7 +150,6 @@
     <ClInclude Include="headers\OpenGLContext.h" />
     <ClInclude Include="headers\RubiksCube.h" />
     <ClInclude Include="headers\Shader.h" />
-    <ClInclude Include="headers\Solver.h" />
     <ClInclude Include="headers\stb_image.h" />
     <ClInclude Include="headers\Window.h" />
     <ClInclude Include="KHR\khrplatform.h" />
@@ -162,7 +161,6 @@
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\RubiksCube.cpp" />
     <ClCompile Include="src\Shader.cpp" />
-    <ClCompile Include="src\Solver.cpp" />
     <ClCompile Include="src\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -171,6 +169,8 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resource\CubeTexture.png" />
+    <Image Include="Resource\Table_BaseColor.png" />
+    <Image Include="Resource\Table_MetallicRoughness.png" />
     <Image Include="Resource\Tiles.jpg" />
     <Image Include="Resource\wall.jpg" />
   </ItemGroup>
